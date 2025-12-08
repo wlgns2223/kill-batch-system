@@ -31,10 +31,10 @@ public class TerminatorConfig {
         EXTREME
     }
 
-    @Bean
-    public JobParametersConverter jobParameterConverter(){
-        return new JsonJobParametersConverter();
-    }
+//    @Bean
+//    public JobParametersConverter jobParameterConverter(){
+//        return new JsonJobParametersConverter();
+//    }
 
     @Bean
     public Job terminatorJob(JobRepository jobRepository,Step newTerminationStep){
