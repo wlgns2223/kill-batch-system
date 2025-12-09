@@ -2,6 +2,8 @@ package com.system.batch.config;
 
 import com.system.batch.listener.BigBrotherJobExecutionListener;
 import com.system.batch.listener.BigBrotherStepExecutionListener;
+import com.system.batch.listener.ServerRackControlListener;
+import com.system.batch.listener.ServerRoomInfiltrationListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,7 +25,7 @@ public class SystemMonitorConfig {
                              Step monitoringStep){
 
         return new JobBuilder("monitoringJob", jobRepository)
-                .listener(new BigBrotherJobExecutionListener())
+                .listener(new ServerRoomInfiltrationListener())
                 .start(monitoringStep)
                 .build();
 
@@ -34,8 +36,8 @@ public class SystemMonitorConfig {
                               PlatformTransactionManager transactionManager,
                               Tasklet monitoringTasklet){
         return new StepBuilder("monitoringStep", jobRepository)
-                .listener(new BigBrotherStepExecutionListener())
                 .tasklet(monitoringTasklet, transactionManager)
+                .listener(new ServerRackControlListener())
                 .build();
     }
 
