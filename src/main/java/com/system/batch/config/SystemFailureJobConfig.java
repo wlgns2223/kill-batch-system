@@ -13,11 +13,18 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.transform.Range;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.beans.PropertyEditor;
+import java.beans.PropertyEditorSupport;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -37,34 +44,68 @@ public class SystemFailureJobConfig {
 
     @Bean
     public Step systemFailureStep(
-            FlatFileItemReader<SystemFailure> systemFailureFlatFileItemReader,
+            FlatFileItemReader<SystemFailure> systemFailureItemReader,
             SystemFailureStdoutItemWriter systemFailureStdoutItemWriter
     ){
         return new StepBuilder("systemFailureStep", jobRepository)
                 .<SystemFailure, SystemFailure>chunk(10, transactionManager)
-                .reader(systemFailureFlatFileItemReader)
+                .reader(systemFailureItemReader)
                 .writer(systemFailureStdoutItemWriter)
                 .build();
     }
 
 
+//    @Bean
+//    @StepScope
+//    public FlatFileItemReader<SystemFailure> systemFailureItemRead(
+//            @Value("#{jobParameters['inputFile']}") String inputFile
+//    ){
+//
+//        return new FlatFileItemReaderBuilder<SystemFailure>()
+//                .name("systemFailureItemReader")
+//                .resource(new FileSystemResource(inputFile))
+//                .delimited()
+//                .delimiter(",")
+//                .names("errorId", "errorDateTime", "severity", "processId", "errorMessage")
+//                .targetType(SystemFailure.class)
+//                .linesToSkip(1)
+//                .build();
+//
+//    }
+
     @Bean
     @StepScope
-    public FlatFileItemReader<SystemFailure> systemFailureItemRead(
+    public FlatFileItemReader<SystemFailure> systemFailureItemReader(
             @Value("#{jobParameters['inputFile']}") String inputFile
-    ){
-
+    ) {
         return new FlatFileItemReaderBuilder<SystemFailure>()
                 .name("systemFailureItemReader")
                 .resource(new FileSystemResource(inputFile))
-                .delimited()
-                .delimiter(",")
+                .fixedLength()
+                .columns(new Range[]{
+                        new Range(1, 8),
+                        new Range(9, 29),
+                        new Range(30, 39),
+                        new Range(40, 45),
+                        new Range(46, 66)
+                })
                 .names("errorId", "errorDateTime", "severity", "processId", "errorMessage")
                 .targetType(SystemFailure.class)
-                .linesToSkip(1)
+                .customEditors(Map.of(LocalDateTime.class,dateTimeEditor()))
                 .build();
-
     }
+
+    private PropertyEditor dateTimeEditor(){
+        return new PropertyEditorSupport() {
+
+            @Override
+            public void setAsText(String text) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-HH-dd HH:mm:ss");
+                setValue(LocalDateTime.parse(text, formatter));
+            }
+        };
+    }
+
 
     @Bean
     public SystemFailureStdoutItemWriter systemFailureStdoutItemWriter(){
