@@ -107,13 +107,13 @@ public class LogProcessingJobConfig {
 
     @Bean
     public Step logProcessingStep(
-            MultiResourceItemReader<LogEntry> multiResourceItemReader,
+            MultiResourceItemReader<LogEntry> multiResourceLogReader,
             LogEntryProcessor logEntryProcessor,
             FlatFileItemWriter<ProcessedLogEntry> processedLogEntryFlatFileItemWriter
     ){
         return new StepBuilder("logProcessingStep", jobRepository)
                 .<LogEntry, ProcessedLogEntry>chunk(10, platformTransactionManager)
-                .reader(multiResourceItemReader)
+                .reader(multiResourceLogReader)
                 .processor(logEntryProcessor)
                 .writer(processedLogEntryFlatFileItemWriter)
                 .build();
@@ -121,7 +121,7 @@ public class LogProcessingJobConfig {
 
     @Bean
     @StepScope
-    public MultiResourceItemReader<LogEntry> multiResourceItemReader(
+    public MultiResourceItemReader<LogEntry> multiResourceLogReader(
             @Value("#{jobParameters['date']}") String date
     ){
         MultiResourceItemReader<LogEntry> resourceItemReader = new MultiResourceItemReader<>();
