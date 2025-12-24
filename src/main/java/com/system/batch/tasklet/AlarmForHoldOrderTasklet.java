@@ -29,7 +29,9 @@ public class AlarmForHoldOrderTasklet implements Tasklet {
         }
 
         for(Orders o: orders){
-            alarmService.send(String.format("%d is holding",o.getOrderNumber()));
+            String message = String.format("%d is holding", o.getOrderNumber());
+            log.info(message);
+            alarmService.send(message);
         }
 
         return RepeatStatus.FINISHED;

@@ -49,7 +49,7 @@ public class PostBlockBatchConfig {
 
     @Bean
     public Step postBlockStep(
-            JpaCursorItemReader<Post> postBlockReader,
+            JpaPagingItemReader<Post> postBlockReader,
             PostBlockedProcessor postBlockedProcessor,
             ItemWriter<BlockedPost> postBlockWriter
     ){
